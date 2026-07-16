@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>개구리 연못 — 오늘의 개구리부터 먹는 학습 플래너</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pond-deep:#0E2A2E;
+  --pond:#164C4A;
+  --mist:#E4EDE7;
+  --card:#FAFCF9;
+  --ink:#12332F;
+  --ink-soft:#5B7570;
+  --line:#CBD9D2;
+  --frog:#4C8C3F;
+  --lily:#7BA05B;
+  --ice:#5E9FC4;
+  --amber:#C9762C;
+  --wither:#9A7B4F;
+  --r:14px;
+  --shadow:0 1px 0 rgba(18,51,47,.06), 0 8px 24px -18px rgba(14,42,46,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--mist);color:var(--ink);
+  font-family:"IBM Plex Sans KR",system-ui,sans-serif;font-weight:400;-webkit-font-smoothing:antialiased}
+body{padding:0 0 72px}
+.wrap{max-width:880px;margin:0 auto;padding:0 20px}
+h1,h2,h3,.disp{font-family:"Gowun Batang","Nanum Myeongjo",serif}
+.mono{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--frog);outline-offset:2px;border-radius:4px}
+
+/* ── header ── */
+header{padding:22px 0 14px}
+.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.brand h1{font-size:22px;letter-spacing:-.02em}
+.brand .sub{font-size:12px;color:var(--ink-soft);letter-spacing:.06em}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.badges{display:flex;gap:8px}
+.badge{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);
+  border-radius:999px;padding:5px 11px;font-size:12px;box-shadow:var(--shadow)}
+.badge b{font-family:"IBM Plex Mono",monospace;font-size:13px}
+.badge.ice{border-color:#B7D5E6;color:#2C5F7C}
+
+/* ── pond hero ── */
+.pond{position:relative;margin:14px 0 6px;border-radius:20px;overflow:hidden;
+  background:linear-gradient(175deg,#1E5A55 0%,#123E42 55%,#0E2A2E 100%);
+  box-shadow:0 20px 50px -30px #0E2A2E}
+.pond svg{display:block;width:100%;height:auto}
+.pond .caption{position:absolute;left:18px;bottom:14px;right:18px;display:flex;
+  justify-content:space-between;align-items:flex-end;gap:12px;pointer-events:none}
+.pond .caption p{font-family:"Gowun Batang",serif;color:#DCEDE4;font-size:15px;line-height:1.5;
+  text-shadow:0 1px 8px rgba(0,0,0,.45)}
+.pond .caption small{color:#8FB9AE;font-size:11px;letter-spacing:.08em}
+#frogGroup{cursor:pointer}
+.ripple{transform-origin:center;opacity:0}
+@keyframes rip{0%{transform:scale(.2);opacity:.55}100%{transform:scale(1.6);opacity:0}}
+.rippling .ripple{animation:rip 2.6s ease-out infinite}
+.rippling .ripple:nth-child(2){animation-delay:.9s}
+.rippling .ripple:nth-child(3){animation-delay:1.8s}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.bobbing{animation:bob 3.4s ease-in-out infinite}
+@keyframes hop{0%{transform:translate(0,0)}35%{transform:translate(40px,-70px) rotate(-12deg)}
+  70%{transform:translate(90px,10px) rotate(4deg)}100%{transform:translate(90px,0)}}
+.hopping{animation:hop 1.1s cubic-bezier(.3,-.4,.5,1.3) forwards}
+
+/* ── tabs ── */
+nav.tabs{display:flex;gap:4px;margin:18px 0 14px;border-bottom:1px solid var(--line)}
+nav.tabs button{padding:10px 14px;font-size:14px;color:var(--ink-soft);border-bottom:2px solid transparent;
+  margin-bottom:-1px;transition:color .15s}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--frog);font-weight:600}
+nav.tabs button:hover{color:var(--ink)}
+
+/* ── cards ── */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+.card > h2{font-size:16px;margin-bottom:3px;letter-spacing:-.01em}
+.card > h2 + .hint{margin-bottom:14px}
+.hint{font-size:12.5px;color:var(--ink-soft);line-height:1.6}
+.panel{display:none}
+.panel.on{display:block}
+
+/* ── forms ── */
+.row{display:flex;gap:8px;align-items:center}
+input[type=text],input[type=number],textarea,select{
+  width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px}
+textarea{resize:vertical;min-height:120px;line-height:1.7}
+input[type=number]{text-align:center;font-family:"IBM Plex Mono",monospace}
+.btn{background:var(--ink);color:#F4FAF6;border-radius:10px;padding:10px 16px;font-size:13.5px;font-weight:500;
+  white-space:nowrap;transition:transform .1s, background .15s}
+.btn:hover{background:#1D4A44}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line)}
+.btn.ghost:hover{background:#EEF4F0;color:var(--ink)}
+.btn.ice{background:var(--ice)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:6px 11px;font-size:12px}
+
+/* ── task list ── */
+ul{list-style:none}
+.task{display:flex;align-items:flex-start;gap:11px;padding:11px 4px;border-bottom:1px solid #E7EEE9}
+.task:last-child{border-bottom:0}
+.pri{flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+  font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;
+  background:#EDF2EE;color:var(--ink-soft);border:1px solid var(--line)}
+.task.frog .pri{background:var(--frog);color:#fff;border-color:var(--frog)}
+.task .body{flex:1;min-width:0}
+.task .txt{font-size:14.5px;line-height:1.5;word-break:break-word}
+.task.done .txt{text-decoration:line-through;color:#9DB0AB}
+.task .tag{display:inline-block;margin-left:7px;font-size:10.5px;letter-spacing:.08em;color:var(--frog);
+  border:1px solid #BCD6B2;background:#EDF6E9;border-radius:5px;padding:1px 5px;vertical-align:1px}
+.check{flex:none;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);background:#fff;
+  display:grid;place-items:center;margin-top:2px;transition:.15s}
+.check:hover{border-color:var(--frog)}
+.task.done .check{background:var(--frog);border-color:var(--frog);color:#fff}
+.del{color:#B9C7C2;font-size:16px;padding:0 4px;line-height:1}
+.del:hover{color:#C0563E}
+.empty{padding:26px 0;text-align:center;color:var(--ink-soft);font-size:13px;line-height:1.7}
+.empty b{display:block;font-family:"Gowun Batang",serif;font-size:15px;color:var(--ink);margin-bottom:4px}
+
+/* ── habits ── */
+.habit{border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:9px;background:#fff}
+.habit .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.habit .name{font-size:14.5px;font-weight:500}
+.habit .meta{font-size:11.5px;color:var(--ink-soft);margin-top:2px}
+.streak{font-family:"IBM Plex Mono",monospace;font-size:15px;font-weight:600;color:var(--amber)}
+.streak.zero{color:#B9C7C2}
+.dots{display:flex;gap:3px;margin-top:10px}
+.dot{width:100%;height:6px;border-radius:3px;background:#E7EEE9}
+.dot.on{background:var(--lily)}
+.dot.froze{background:var(--ice)}
+.dot.today{box-shadow:0 0 0 1.5px var(--ink) inset}
+
+/* ── notes ── */
+.note{border-left:3px solid var(--lily);padding:2px 0 2px 12px;margin-bottom:14px}
+.note .d{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-soft);letter-spacing:.04em}
+.note .t{font-size:14px;line-height:1.75;margin:4px 0 7px;white-space:pre-wrap}
+.kw{display:inline-block;background:#F3EDDD;border-bottom:2px solid #E0CB9A;border-radius:3px;padding:0 3px}
+.kws{display:flex;flex-wrap:wrap;gap:5px}
+.kws span{font-size:11px;background:#EDF2EE;border:1px solid var(--line);border-radius:5px;padding:2px 7px;color:var(--ink-soft)}
+.quiz{border:1px solid #E0CB9A;background:#FCF8EF;border-radius:12px;padding:14px;margin-top:10px}
+.quiz .q{font-size:14px;font-weight:500;line-height:1.6;margin-bottom:9px}
+.opt{display:block;width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:9px;
+  padding:9px 11px;font-size:13.5px;margin-bottom:6px;transition:.12s}
+.opt:hover{border-color:var(--ink-soft)}
+.opt.correct{background:#EDF6E9;border-color:var(--frog);color:#2F5E27;font-weight:500}
+.opt.wrong{background:#FBEEEA;border-color:#DFA491;color:#8E4430}
+.explain{font-size:12.5px;color:var(--ink-soft);line-height:1.65;margin-top:6px;padding-left:2px}
+
+/* ── focus ── */
+.timer{text-align:center;padding:6px 0 14px}
+.timer .num{font-family:"IBM Plex Mono",monospace;font-size:58px;font-weight:300;letter-spacing:-.03em;line-height:1}
+.timer .st{font-size:12.5px;color:var(--ink-soft);margin-top:8px;min-height:19px}
+.timer.withered .num{color:var(--wither)}
+.plantbox{display:grid;place-items:center;padding:6px 0 0}
+.warn{background:#FBEEEA;border:1px solid #DFA491;color:#8E4430;border-radius:10px;padding:10px 12px;
+  font-size:12.5px;line-height:1.6;margin-top:10px;display:none}
+.warn.on{display:block}
+.stats{display:flex;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:12px;background:#fff}
+.stat{flex:1;padding:11px 8px;text-align:center;border-right:1px solid var(--line)}
+.stat:last-child{border-right:0}
+.stat b{display:block;font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:500}
+.stat span{font-size:10.5px;color:var(--ink-soft);letter-spacing:.04em}
+
+/* ── misc ── */
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);background:var(--pond-deep);
+  color:#E6F2EC;padding:11px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;
+  transition:.25s;z-index:50;box-shadow:0 10px 30px -12px #000}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.leaf{position:fixed;pointer-events:none;z-index:40;font-size:18px}
+footer{text-align:center;padding:26px 0 6px;font-size:11px;color:#93A8A3;letter-spacing:.06em}
+footer b{color:var(--ink-soft);font-weight:500;cursor:pointer}
+.loading{display:inline-block;width:11px;height:11px;border:2px solid var(--line);border-top-color:var(--frog);
+  border-radius:50%;animation:sp .7s linear infinite;vertical-align:-1px;margin-right:5px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (max-width:560px){
+  .timer .num{font-size:46px}
+  .pond .caption{position:static;padding:0 16px 14px;flex-direction:column;align-items:flex-start;gap:4px}
+  .pond .caption p{text-shadow:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header>
+  <div class="topbar">
+    <div class="brand">
+      <h1>개구리 연못</h1>
+      <span class="sub">EAT THAT FROG FIRST</span>
+    </div>
+    <div class="badges">
+      <div class="badge" title="계획을 완벽히 지킨 연속 일수"><span>🔥</span><b id="bStreak">0</b>일</div>
+      <div class="badge ice" title="2주 연속 완벽 수행 시 1장 지급"><span>🧊</span><b id="bFreeze">0</b>장</div>
+    </div>
+  </div>
+</header>
+
+<!-- ── 연못: 앱 상태 그 자체 ── -->
+<div class="pond" id="pond">
+<svg viewBox="0 0 880 260" xmlns="http://www.w3.org/2000/svg" aria-label="오늘의 연못">
+  <defs>
+    <radialGradient id="moon" cx="50%" cy="50%"><stop offset="0" stop-color="#EAF6EF" stop-opacity=".9"/><stop offset="1" stop-color="#EAF6EF" stop-opacity="0"/></radialGradient>
+    <linearGradient id="pad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3F7A46"/><stop offset="1" stop-color="#2A5A3A"/></linearGradient>
+    <linearGradient id="padBig" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5C9A4E"/><stop offset="1" stop-color="#356B3E"/></linearGradient>
+  </defs>
+  <circle cx="740" cy="52" r="70" fill="url(#moon)"/>
+  <circle cx="740" cy="52" r="17" fill="#F2FAF4" opacity=".85"/>
+  <!-- 물결 -->
+  <g stroke="#2E6D66" stroke-width="1" fill="none" opacity=".5">
+    <path d="M0 176 Q 90 168 180 176 T 360 176 T 540 176 T 720 176 T 900 176"/>
+    <path d="M0 206 Q 110 198 220 206 T 440 206 T 660 206 T 900 206"/>
+    <path d="M0 236 Q 80 229 160 236 T 320 236 T 480 236 T 640 236 T 900 236"/>
+  </g>
+  <!-- 파문 -->
+  <g id="ripples" fill="none" stroke="#8FD3C0" stroke-width="1.5">
+    <ellipse class="ripple" cx="228" cy="188" rx="40" ry="12"/>
+    <ellipse class="ripple" cx="228" cy="188" rx="40" ry="12"/>
+    <ellipse class="ripple" cx="228" cy="188" rx="40" ry="12"/>
+  </g>
+  <!-- 갈대 -->
+  <g stroke="#2C6B57" stroke-width="2.5" fill="none" opacity=".8">
+    <path d="M52 250 C 46 210 60 186 54 158"/><path d="M74 250 C 70 216 82 198 78 172"/>
+    <path d="M842 250 C 848 214 834 194 840 166"/>
+  </g>
+  <ellipse cx="54" cy="154" rx="4" ry="11" fill="#6B4A2E"/>
+  <ellipse cx="840" cy="162" rx="4" ry="10" fill="#6B4A2E"/>
+  <!-- 작은 연잎: 나머지 할 일 -->
+  <g id="pads"></g>
+  <!-- 큰 연잎 + 개구리 -->
+  <g class="bobbing">
+    <ellipse cx="228" cy="196" rx="72" ry="21" fill="#0B2326" opacity=".45"/>
+    <path id="bigPad" d="M228 214 a72 22 0 1 1 .1 0 z" fill="url(#padBig)"/>
+    <path d="M228 192 L 300 194" stroke="#2A5A3A" stroke-width="2"/>
+    <g id="frogGroup" tabindex="0" role="button" aria-label="오늘의 개구리">
+      <ellipse cx="228" cy="184" rx="27" ry="19" fill="#4C8C3F"/>
+      <ellipse cx="228" cy="190" rx="19" ry="10" fill="#7FBF62"/>
+      <circle cx="216" cy="167" r="10" fill="#4C8C3F"/><circle cx="240" cy="167" r="10" fill="#57A047"/>
+      <circle cx="216" cy="166" r="6" fill="#F6FBF2"/><circle cx="240" cy="166" r="6" fill="#F6FBF2"/>
+      <circle id="eyeL" cx="217" cy="167" r="3" fill="#12332F"/><circle id="eyeR" cx="241" cy="167" r="3" fill="#12332F"/>
+      <path id="mouth" d="M216 188 Q 228 195 240 188" stroke="#2C5E28" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="206" cy="196" rx="9" ry="5" fill="#3F7A36"/><ellipse cx="250" cy="196" rx="9" ry="5" fill="#3F7A36"/>
+    </g>
+  </g>
+  <!-- 집중 식물 -->
+  <g id="plantHero" transform="translate(640,214)"></g>
+</svg>
+  <div class="caption">
+    <p id="pondLine">연못이 조용합니다. 오늘 먹을 개구리를 정해 보세요.</p>
+    <small class="mono" id="todayLabel"></small>
+  </div>
+</div>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-tab="today">오늘</button>
+  <button role="tab" aria-selected="false" data-tab="habit">습관</button>
+  <button role="tab" aria-selected="false" data-tab="note">노트</button>
+  <button role="tab" aria-selected="false" data-tab="focus">집중</button>
+</nav>
+
+<!-- ══ 오늘 ══ -->
+<section class="panel on" id="p-today">
+  <div class="card">
+    <h2>오늘의 계획</h2>
+    <p class="hint">우선순위 1번이 <b>오늘의 개구리</b>가 됩니다 — 가장 크고 가장 미루고 싶은 일 하나. 그것부터 끝냅니다.</p>
+    <div class="row">
+      <input type="number" id="tPri" min="1" max="9" value="1" style="width:64px" aria-label="우선순위">
+      <input type="text" id="tText" placeholder="할 일을 적으세요" maxlength="80">
+      <button class="btn" id="tAdd">추가</button>
+    </div>
+    <ul id="taskList" style="margin-top:6px"></ul>
+  </div>
+</section>
+
+<!-- ══ 습관 ══ -->
+<section class="panel" id="p-habit">
+  <div class="card">
+    <h2>만들고 싶은 습관</h2>
+    <p class="hint">계획과 습관을 모두 지킨 날이 <b>14일 연속</b>이면 휴식권 🧊 1장이 쌓입니다. 하루 놓친 날엔 휴식권으로 연속 기록을 지킬 수 있어요.</p>
+    <div class="row">
+      <input type="text" id="hName" placeholder="예: 영어 단어 30개" maxlength="40">
+      <select id="hSpan" style="width:110px">
+        <option value="30">30일</option><option value="66" selected>66일</option>
+        <option value="100">100일</option><option value="365">365일</option>
+      </select>
+      <button class="btn" id="hAdd">추가</button>
+    </div>
+    <div id="habitList" style="margin-top:12px"></div>
+  </div>
+</section>
+
+<!-- ══ 노트 ══ -->
+<section class="panel" id="p-note">
+  <div class="card">
+    <h2>오늘 배운 것</h2>
+    <p class="hint">저장하면 핵심 용어를 자동으로 뽑아 하이라이트합니다. 주말엔 이번 주 노트로 미니 퀴즈를 만들어 드려요.</p>
+    <textarea id="nText" placeholder="오늘 알게 된 것, 어려웠던 부분, 다시 볼 것…"></textarea>
+    <div class="row" style="margin-top:10px;justify-content:flex-end">
+      <button class="btn" id="nSave">저장하고 키워드 뽑기</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>이번 주 복습</h2>
+    <p class="hint" id="quizHint">주말이 되면 퀴즈가 열립니다. 그 전에도 직접 열어볼 수 있어요.</p>
+    <button class="btn ghost" id="qGen">미니 퀴즈 만들기</button>
+    <div id="quizBox"></div>
+  </div>
+  <div class="card">
+    <h2>지난 노트</h2>
+    <div id="noteList"></div>
+  </div>
+</section>
+
+<!-- ══ 집중 ══ -->
+<section class="panel" id="p-focus">
+  <div class="card">
+    <h2>집중 시간</h2>
+    <p class="hint">시작하면 이 화면을 떠나지 마세요. 다른 앱이나 탭으로 가면 식물이 시듭니다. 끝까지 남아 있으면 연못에 심어집니다.</p>
+    <div class="plantbox"><svg id="plantBig" viewBox="0 0 160 150" width="170" height="150" aria-hidden="true"></svg></div>
+    <div class="timer" id="timerBox">
+      <div class="num" id="tClock">25:00</div>
+      <div class="st" id="tState">아직 시작하지 않았습니다.</div>
+    </div>
+    <div class="row" style="justify-content:center">
+      <input type="number" id="fMin" min="5" max="180" value="25" style="width:76px" aria-label="집중 분">
+      <span class="hint">분</span>
+      <button class="btn" id="fStart">집중 시작</button>
+      <button class="btn ghost" id="fStop">그만두기</button>
+    </div>
+    <div class="warn" id="fWarn">화면을 벗어났습니다. 지금 돌아오면 식물이 살아납니다.</div>
+    <div class="stats">
+      <div class="stat"><b class="mono" id="sPlants">0</b><span>심은 식물</span></div>
+      <div class="stat"><b class="mono" id="sMin">0</b><span>집중한 분</span></div>
+      <div class="stat"><b class="mono" id="sWither">0</b><span>시든 식물</span></div>
+    </div>
+  </div>
+</section>
+
+<footer>연못지기 <b id="egg">eipi10</b> · 하루에 개구리 한 마리</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════ 상태 ═══════════ */
+const KEY='frogpond:v1';
+const today=()=>new Date().toISOString().slice(0,10);
+const dayBefore=(d,n)=>{const x=new Date(d+'T00:00:00');x.setDate(x.getDate()-n);return x.toISOString().slice(0,10)};
+const isWeekend=()=>[0,6].includes(new Date().getDay());
+
+let S={date:today(),tasks:[],habits:[],notes:[],freeze:0,perfect:0,lastPerfect:null,
+       plants:0,minutes:0,withered:0,pondPlants:[]};
+let mem=null;
+
+async function load(){
+  try{const r=await window.storage.get(KEY); if(r&&r.value) S=Object.assign(S,JSON.parse(r.value));}
+  catch(e){ if(mem) S=Object.assign(S,mem); }
+  rollover();
+}
+async function save(){
+  mem=JSON.parse(JSON.stringify(S));
+  try{ await window.storage.set(KEY,JSON.stringify(S)); }catch(e){ /* 세션 메모리로 유지 */ }
+}
+/* 날짜가 바뀌면 할 일은 비우고, 어제의 완벽 여부를 정산 */
+function rollover(){
+  const t=today(); if(S.date===t) return;
+  S.tasks=[]; S.date=t; save();
+}
+
+/* ═══════════ 유틸 ═══════════ */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const uid=()=>Math.random().toString(36).slice(2,9);
+let toastT;
+function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('on');
+  clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('on'),2600);}
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ═══════════ 오늘의 개구리 ═══════════ */
+function sorted(){return [...S.tasks].sort((a,b)=>a.pri-b.pri||a.id.localeCompare(b.id))}
+function frogTask(){return sorted().find(t=>t.pri===1)}
+
+function renderTasks(){
+  const list=sorted(), ul=$('#taskList');
+  if(!list.length){ul.innerHTML='<li class="empty"><b>연못이 비어 있습니다</b>가장 미루고 싶은 일을 1번에 적어 보세요.</li>';}
+  else ul.innerHTML=list.map(t=>`
+    <li class="task ${t.done?'done':''} ${t.pri===1?'frog':''}">
+      <button class="check" data-t="${t.id}" aria-label="완료 표시">${t.done?'✓':''}</button>
+      <span class="pri">${t.pri===1?'🐸':t.pri}</span>
+      <div class="body"><div class="txt">${esc(t.text)}${t.pri===1?'<span class="tag">오늘의 개구리</span>':''}</div></div>
+      <button class="del" data-d="${t.id}" aria-label="삭제">×</button>
+    </li>`).join('');
+  $$('[data-t]').forEach(b=>b.onclick=()=>toggleTask(b.dataset.t));
+  $$('[data-d]').forEach(b=>b.onclick=()=>{S.tasks=S.tasks.filter(x=>x.id!==b.dataset.d);save();renderAll()});
+}
+
+function toggleTask(id){
+  const t=S.tasks.find(x=>x.id===id); if(!t)return;
+  t.done=!t.done; save();
+  if(t.done && t.pri===1) frogCelebrate(); else renderAll();
+  checkPerfect();
+}
+
+$('#tAdd').onclick=()=>{
+  const text=$('#tText').value.trim(), pri=Math.max(1,Math.min(9,+$('#tPri').value||1));
+  if(!text) return toast('할 일을 적어 주세요.');
+  if(pri===1 && S.tasks.some(t=>t.pri===1)) return toast('오늘의 개구리는 한 마리뿐입니다. 1번은 이미 있어요.');
+  S.tasks.push({id:uid(),text,pri,done:false});
+  $('#tText').value=''; $('#tPri').value=Math.min(9,S.tasks.length+1);
+  save(); renderAll();
+};
+$('#tText').onkeydown=e=>{if(e.key==='Enter')$('#tAdd').click()};
+
+/* 개구리 완료 = 축하 연출 */
+function frogCelebrate(){
+  const g=$('#frogGroup'); g.classList.add('hopping'); $('#pond').classList.add('rippling');
+  for(let i=0;i<22;i++){
+    const el=document.createElement('div'); el.className='leaf';
+    el.textContent=['🍃','🌿','💧','✨'][i%4];
+    const x=window.innerWidth/2+(Math.random()-.5)*260, y=180+Math.random()*40;
+    el.style.left=x+'px'; el.style.top=y+'px';
+    document.body.appendChild(el);
+    el.animate([{transform:'translate(0,0) rotate(0)',opacity:1},
+      {transform:`translate(${(Math.random()-.5)*320}px,${260+Math.random()*220}px) rotate(${(Math.random()-.5)*720}deg)`,opacity:0}],
+      {duration:1600+Math.random()*900,easing:'cubic-bezier(.2,.6,.4,1)'}).onfinish=()=>el.remove();
+  }
+  toast('개구리를 먹었습니다. 오늘 나머지는 전부 쉬운 일이에요.');
+  setTimeout(()=>{g.classList.remove('hopping');renderAll()},1200);
+}
+
+/* ═══════════ 습관 · 스트릭 · 휴식권 ═══════════ */
+$('#hAdd').onclick=()=>{
+  const name=$('#hName').value.trim(); if(!name) return toast('습관 이름을 적어 주세요.');
+  S.habits.push({id:uid(),name,span:+$('#hSpan').value,streak:0,best:0,last:null,hist:{}});
+  $('#hName').value=''; save(); renderAll();
+};
+
+function habitDone(h,d){return h.hist[d]==='y'||h.hist[d]==='f'}
+
+function checkHabit(id){
+  const h=S.habits.find(x=>x.id===id), t=today(); if(!h)return;
+  if(habitDone(h,t)){ delete h.hist[t]; h.streak=recount(h); }
+  else{
+    const y=dayBefore(t,1);
+    // 어제를 놓쳤고 휴식권이 있으면 사용 여부를 묻는다
+    if(h.last && h.last!==y && h.last!==t && !h.hist[y] && S.freeze>0 && daysBetween(h.last,t)===2){
+      if(confirm(`어제 "${h.name}"을(를) 놓쳤습니다.\n휴식권 🧊 1장을 써서 ${h.streak}일 연속 기록을 지킬까요?`)){
+        h.hist[y]='f'; S.freeze--; toast('휴식권을 썼습니다. 연속 기록은 그대로예요.');
+      }
+    }
+    h.hist[t]='y'; h.last=t; h.streak=recount(h); h.best=Math.max(h.best,h.streak);
+  }
+  save(); renderAll(); checkPerfect();
+}
+function daysBetween(a,b){return Math.round((new Date(b)-new Date(a))/864e5)}
+function recount(h){let n=0,d=today(); while(habitDone(h,d)){n++;d=dayBefore(d,1)} return n}
+
+function renderHabits(){
+  const box=$('#habitList');
+  if(!S.habits.length){box.innerHTML='<div class="empty"><b>아직 습관이 없습니다</b>한 달, 일 년 뒤에 갖고 싶은 모습 하나를 적어 보세요.</div>';return}
+  box.innerHTML=S.habits.map(h=>{
+    const dots=[...Array(14)].map((_,i)=>{const d=dayBefore(today(),13-i),v=h.hist[d];
+      return `<div class="dot ${v==='y'?'on':''} ${v==='f'?'froze':''} ${d===today()?'today':''}" title="${d}"></div>`}).join('');
+    const done=habitDone(h,today());
+    return `<div class="habit">
+      <div class="top">
+        <div><div class="name">${esc(h.name)}</div>
+          <div class="meta">${h.span}일 목표 · 최고 ${h.best}일 · 진행 ${Math.round(recount(h)/h.span*100)}%</div></div>
+        <div class="row">
+          <span class="streak ${h.streak?'':'zero'}">🔥 ${h.streak}</span>
+          <button class="btn sm ${done?'ghost':''}" data-h="${h.id}">${done?'취소':'오늘 완료'}</button>
+          <button class="del" data-hd="${h.id}" aria-label="삭제">×</button>
+        </div>
+      </div>
+      <div class="dots">${dots}</div>
+    </div>`}).join('');
+  $$('[data-h]').forEach(b=>b.onclick=()=>checkHabit(b.dataset.h));
+  $$('[data-hd]').forEach(b=>b.onclick=()=>{if(confirm('이 습관을 지울까요? 기록도 함께 사라집니다.')){S.habits=S.habits.filter(x=>x.id!==b.dataset.hd);save();renderAll()}});
+}
+
+/* 완벽한 하루 = 할 일 전부 + 습관 전부. 14일 연속이면 휴식권 지급 */
+function checkPerfect(){
+  const t=today();
+  const allTask=S.tasks.length>0 && S.tasks.every(x=>x.done);
+  const allHabit=S.habits.length===0 || S.habits.every(h=>habitDone(h,t));
+  if(allTask && allHabit && S.lastPerfect!==t){
+    S.perfect = (S.lastPerfect===dayBefore(t,1)) ? S.perfect+1 : 1;
+    S.lastPerfect=t;
+    if(S.perfect>0 && S.perfect%14===0){ S.freeze++; toast('2주 연속 완벽 수행 — 휴식권 🧊 1장을 받았습니다.'); }
+    else toast(`오늘 계획을 전부 지켰습니다. 연속 ${S.perfect}일.`);
+    save(); renderBadges();
+  }
+}
+
+/* ═══════════ 노트 · AI 키워드 · 퀴즈 ═══════════ */
+async function askClaude(prompt){
+  const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,messages:[{role:"user",content:prompt}]})});
+  const d=await r.json();
+  const txt=d.content.filter(c=>c.type==='text').map(c=>c.text).join('');
+  return JSON.parse(txt.replace(/```json|```/g,'').trim());
+}
+
+$('#nSave').onclick=async()=>{
+  const text=$('#nText').value.trim(); if(!text) return toast('배운 것을 적어 주세요.');
+  const btn=$('#nSave'); btn.disabled=true; btn.innerHTML='<span class="loading"></span>키워드 뽑는 중';
+  let kws=[];
+  try{
+    const o=await askClaude(`다음은 학습자가 오늘 공부한 내용을 정리한 노트다. 핵심 용어를 3~6개 뽑아라.
+용어는 반드시 노트 본문에 그대로 등장하는 표현이어야 한다. 설명이나 마크다운 없이 JSON만 출력하라.
+형식: {"keywords":["용어1","용어2"]}
+
+노트:
+${text}`);
+    kws=(o.keywords||[]).filter(k=>text.includes(k)).slice(0,6);
+  }catch(e){ kws=fallbackKw(text); toast('자동 추출에 실패해 간단 규칙으로 뽑았습니다.'); }
+  S.notes.unshift({id:uid(),date:today(),text,kws});
+  $('#nText').value=''; btn.disabled=false; btn.textContent='저장하고 키워드 뽑기';
+  save(); renderNotes();
+};
+function fallbackKw(t){
+  const f={};
+  t.split(/[\s,.·\n()"'~!?:;\/\[\]]+/).filter(w=>w.length>=2&&!/^\d+$/.test(w))
+    .forEach(w=>f[w]=(f[w]||0)+1);
+  return Object.entries(f).sort((a,b)=>b[1]-a[1]||b[0].length-a[0].length).slice(0,5).map(x=>x[0]);
+}
+function highlight(text,kws){
+  let h=esc(text);
+  [...kws].sort((a,b)=>b.length-a.length).forEach(k=>{
+    const e=esc(k).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    h=h.replace(new RegExp(e,'g'),m=>`\u0001${m}\u0002`);
+  });
+  return h.replace(/\u0001/g,'<span class="kw">').replace(/\u0002/g,'</span>');
+}
+function renderNotes(){
+  const box=$('#noteList');
+  if(!S.notes.length){box.innerHTML='<div class="empty"><b>노트가 없습니다</b>오늘 어려웠던 한 가지만 적어도 충분해요.</div>';return}
+  box.innerHTML=S.notes.slice(0,12).map(n=>`<div class="note">
+    <div class="d">${n.date}</div>
+    <div class="t">${highlight(n.text,n.kws||[])}</div>
+    <div class="kws">${(n.kws||[]).map(k=>`<span>${esc(k)}</span>`).join('')}</div>
+  </div>`).join('');
+}
+
+$('#qGen').onclick=async()=>{
+  const week=S.notes.filter(n=>daysBetween(n.date,today())<=7);
+  if(!week.length) return toast('이번 주에 저장한 노트가 없습니다.');
+  const btn=$('#qGen'); btn.disabled=true; btn.innerHTML='<span class="loading"></span>퀴즈 만드는 중';
+  try{
+    const o=await askClaude(`아래는 한 학습자가 이번 주에 쓴 학습 노트들이다. 이 노트 내용만으로 답할 수 있는 4지선다 복습 퀴즈 3문항을 만들어라.
+단순 암기보다 스스로 기억을 인출하게 하는 문제로 만들고, 노트에 없는 내용은 묻지 마라. 한국어로, JSON만 출력하라.
+형식: {"quiz":[{"q":"질문","options":["a","b","c","d"],"answer":0,"why":"한 문장 해설"}]}
+
+노트:
+${week.map(n=>`[${n.date}] ${n.text}`).join('\n\n')}`);
+    renderQuiz(o.quiz||[]);
+  }catch(e){ toast('퀴즈를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.'); }
+  btn.disabled=false; btn.textContent='미니 퀴즈 만들기';
+};
+function renderQuiz(qs){
+  if(!qs.length) return;
+  $('#quizBox').innerHTML=qs.map((q,i)=>`<div class="quiz">
+    <div class="q">${i+1}. ${esc(q.q)}</div>
+    ${q.options.map((o,j)=>`<button class="opt" data-q="${i}" data-o="${j}">${esc(o)}</button>`).join('')}
+    <div class="explain" id="ex${i}" style="display:none">${esc(q.why||'')}</div>
+  </div>`).join('');
+  $$('.opt').forEach(b=>b.onclick=()=>{
+    const q=qs[+b.dataset.q], ok=+b.dataset.o===q.answer;
+    b.classList.add(ok?'correct':'wrong');
+    if(!ok) document.querySelector(`.opt[data-q="${b.dataset.q}"][data-o="${q.answer}"]`).classList.add('correct');
+    $$(`.opt[data-q="${b.dataset.q}"]`).forEach(x=>x.disabled=true);
+    $('#ex'+b.dataset.q).style.display='block';
+  });
+}
+
+/* ═══════════ 집중 시간 · 식물 ═══════════ */
+let F={on:false,end:0,total:0,tick:null,away:0,awayT:null,stage:0,dead:false};
+function plantSVG(stage,dead){
+  const c=dead?'#9A7B4F':'#4C8C3F', l=dead?'#B79A6E':'#7FBF62', d=dead?'.55':'1';
+  let s=`<g opacity="${d}"><ellipse cx="80" cy="140" rx="34" ry="7" fill="#3E2C1C" opacity=".35"/>
+    <path d="M56 140 L 62 118 L 98 118 L 104 140 Z" fill="#6B4A2E"/><rect x="58" y="112" width="44" height="8" rx="3" fill="#825C3A"/>`;
+  if(stage>=1) s+=`<path d="M80 118 L 80 ${dead?104:100}" stroke="${c}" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="74" cy="${dead?106:102}" rx="7" ry="4" fill="${l}" transform="rotate(${dead?25:-20} 74 102)"/>`;
+  if(stage>=2) s+=`<path d="M80 100 L 80 ${dead?86:78}" stroke="${c}" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="92" cy="${dead?92:88}" rx="11" ry="5" fill="${l}" transform="rotate(${dead?30:15} 92 88)"/>
+    <ellipse cx="68" cy="${dead?86:80}" rx="11" ry="5" fill="${c}" transform="rotate(${dead?-35:-15} 68 80)"/>`;
+  if(stage>=3) s+=`<path d="M80 78 L 80 ${dead?66:56}" stroke="${c}" stroke-width="3.5" stroke-linecap="round"/>
+    <ellipse cx="96" cy="${dead?70:64}" rx="14" ry="6" fill="${l}" transform="rotate(${dead?35:20} 96 64)"/>
+    <ellipse cx="64" cy="${dead?66:58}" rx="14" ry="6" fill="${c}" transform="rotate(${dead?-40:-20} 64 58)"/>`;
+  if(stage>=4&&!dead) s+=`<circle cx="80" cy="46" r="9" fill="#E9B84A"/>
+    ${[0,72,144,216,288].map(a=>`<ellipse cx="80" cy="32" rx="5" ry="9" fill="#F2D98B" transform="rotate(${a} 80 46)"/>`).join('')}
+    <circle cx="80" cy="46" r="6" fill="#C9762C"/>`;
+  if(stage>=4&&dead) s+=`<circle cx="88" cy="52" r="6" fill="#8A6B45"/>`;
+  return s+`</g>`;
+}
+function drawPlant(){ $('#plantBig').innerHTML=plantSVG(F.stage,F.dead); }
+
+function fmt(ms){const s=Math.max(0,Math.ceil(ms/1000));
+  return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+
+$('#fStart').onclick=()=>{
+  if(F.on) return;
+  const m=Math.max(1,Math.min(180,+$('#fMin').value||25));
+  F={on:true,end:Date.now()+m*6e4,total:m*6e4,tick:null,away:0,awayT:null,stage:0,dead:false};
+  $('#timerBox').classList.remove('withered'); $('#fWarn').classList.remove('on');
+  $('#tState').textContent='집중 중입니다. 화면을 떠나지 마세요.';
+  F.tick=setInterval(step,250); step(); drawPlant();
+};
+$('#fStop').onclick=()=>{ if(!F.on) return; endFocus(false,'집중을 멈췄습니다. 식물은 심지 않았습니다.'); };
+
+function step(){
+  const left=F.end-Date.now();
+  $('#tClock').textContent=fmt(left);
+  const p=1-left/F.total, st=Math.min(4,Math.floor(p*4)+ (p>=1?0:1) -1 +1);
+  if(st!==F.stage && !F.dead){F.stage=Math.min(4,Math.max(0,st));drawPlant()}
+  if(left<=0) endFocus(true);
+}
+function endFocus(ok,msg){
+  clearInterval(F.tick); F.on=false;
+  $('#tClock').textContent=ok?'00:00':fmt(F.end-Date.now());
+  if(ok){
+    S.plants++; S.minutes+=Math.round(F.total/6e4);
+    S.pondPlants=[...(S.pondPlants||[]),1].slice(-5);
+    F.stage=4;F.dead=false;drawPlant();
+    $('#tState').textContent='식물이 피었습니다. 연못에 심었어요.';
+    toast('집중을 끝냈습니다. 연못에 식물이 하나 늘었어요.');
+  }else{
+    $('#tState').textContent=msg||'식물이 시들었습니다.';
+    if(msg&&msg.includes('시')) S.withered++;
+  }
+  save(); renderAll();
+}
+function wither(){
+  if(!F.on) return;
+  F.dead=true; drawPlant(); clearInterval(F.tick); F.on=false; S.withered++;
+  $('#timerBox').classList.add('withered');
+  $('#tState').textContent='화면을 너무 오래 떠났습니다. 식물이 시들었어요.';
+  $('#fWarn').classList.remove('on');
+  save(); renderAll();
+}
+document.addEventListener('visibilitychange',()=>{
+  if(!F.on) return;
+  if(document.hidden){ $('#fWarn').classList.add('on'); F.awayT=setTimeout(wither,8000); }
+  else { clearTimeout(F.awayT); $('#fWarn').classList.remove('on'); }
+});
+window.addEventListener('blur',()=>{ if(F.on) $('#fWarn').classList.add('on') });
+window.addEventListener('focus',()=>{ if(F.on) $('#fWarn').classList.remove('on') });
+
+/* ═══════════ 연못 그리기 ═══════════ */
+function renderPond(){
+  const rest=sorted().filter(t=>t.pri!==1);
+  $('#pads').innerHTML=rest.map((t,i)=>{
+    const x=380+i*74, y=204+(i%2)*16, r=26-(i%3)*3, o=t.done?.35:.95;
+    return `<g opacity="${o}"><ellipse cx="${x}" cy="${y+5}" rx="${r}" ry="${r*.3}" fill="#0B2326" opacity=".35"/>
+      <path d="M${x} ${y+r*.3} a${r} ${r*.32} 0 1 1 .1 0 z" fill="url(#pad)"/>
+      ${t.done?`<path d="M${x-7} ${y} l5 5 l9 -10" stroke="#CFEBC4" stroke-width="2.5" fill="none" stroke-linecap="round"/>`:''}
+    </g>`}).join('');
+  const n=(S.pondPlants||[]).length;
+  $('#plantHero').innerHTML=[...Array(n)].map((_,i)=>
+    `<g transform="translate(${i*36-n*18},0) scale(.42)" opacity=".9">${plantSVG(4,false)}</g>`).join('');
+  const f=frogTask();
+  const line = !f ? '연못이 조용합니다. 오늘 먹을 개구리를 정해 보세요.'
+    : f.done ? '오늘의 개구리를 먹었습니다. 남은 건 전부 곁들이예요.'
+    : `오늘의 개구리 — ${f.text}`;
+  $('#pondLine').textContent=line;
+  $('#pond').classList.toggle('rippling', !!f && !f.done);
+  $('#todayLabel').textContent=new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'});
+  $('#mouth').setAttribute('d', f&&f.done ? 'M214 186 Q 228 198 242 186' : 'M216 190 Q 228 193 240 190');
+}
+function renderBadges(){ $('#bStreak').textContent=S.perfect||0; $('#bFreeze').textContent=S.freeze||0; }
+function renderStats(){ $('#sPlants').textContent=S.plants||0; $('#sMin').textContent=S.minutes||0; $('#sWither').textContent=S.withered||0; }
+function renderAll(){ renderTasks(); renderHabits(); renderNotes(); renderPond(); renderBadges(); renderStats();
+  $('#quizHint').textContent = isWeekend()
+    ? '주말입니다. 이번 주 노트로 퀴즈를 열어 보세요.'
+    : '주말이 되면 퀴즈가 열립니다. 그 전에도 직접 열어볼 수 있어요.';
+}
+
+/* ═══════════ 탭 · 부수적인 것 ═══════════ */
+$$('nav.tabs button').forEach(b=>b.onclick=()=>{
+  $$('nav.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  $$('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+b.dataset.tab));
+});
+/* 개구리를 자꾸 건드리면 */
+let poke=0;
+$('#frogGroup').onclick=()=>{
+  poke++;
+  $('#eyeL').setAttribute('r',poke%2?1:3); $('#eyeR').setAttribute('r',poke%2?1:3);
+  if(poke===5){ toast('개굴. 그만 찌르고 1번부터 하세요. — kimbbak'); poke=0;
+    setTimeout(()=>{$('#eyeL').setAttribute('r',3);$('#eyeR').setAttribute('r',3)},600); }
+};
+$('#egg').onclick=()=>toast('eipi10 · kimbbak 🐸');
+
+(async()=>{ await load(); drawPlant(); renderAll(); })();
+</script>
+</body>
+</html>
